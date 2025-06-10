@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>夏日回憶 | 人生四格拍貼機</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #fff8f2;
+      text-align: center;
+      padding: 20px;
+      color: #444;
+    }
+    h1 {
+      font-family: "DFKai-SB", "Noto Sans TC", sans-serif;
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+    video, canvas, img {
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    #photos {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .photo-preview {
+      margin: 5px 0;
+      width: 240px;
+      height: 180px;
+      object-fit: cover;
+      border: 2px solid #ffc7b5;
+      border-radius: 10px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: #ffd8b1;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    canvas {
+      margin-top: 20px;
+      border: 3px dashed #ffbda7;
+    }
+  </style>
+</head>
+<body>
+  <h1>夏日回憶 | 人生四格拍貼機</h1>
+  <video id="camera" width="320" height="240" autoplay></video><br>
+  <button onclick="takePhoto()">拍照</button>
+  <button onclick="generateCanvas()">生成四格圖</button>
+  <div id="photos"></div>
+  <canvas id="fourcut" width="320" height="960"></canvas><br>
+  <button onclick="downloadImage()">下載我的人生四格</button>
+
+  <script>
+    const video = document.getElementById("camera");
+    const photos = document.getElementById("photos");
+    const canvas = document.getElementById("fourcut");
+    const ctx = canvas.getContext("2d");
+    let images = [];
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(err => alert("無法開啟相機: " + err));
+
+    function takePhoto() {
+      if (images.length >= 4) return alert("已拍滿 4 張");
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = 320;
+      tempCanvas.height = 240;
+      tempCanvas.getContext("2d").drawImage(video, 0, 0, 320, 240);
+      const imgData = tempCanvas.toDataURL("image/png");
+      images.push(imgData);
+      const img = document.createElement("img");
+      img.src = imgData;
+      img.className = "photo-preview";
+      photos.appendChild(img);
+    }
+
+    function generateCanvas() {
+      if (images.length < 4) return alert("請拍滿 4 張照片");
+      for (let i = 0; i < 4; i++) {
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, i * 240, 320, 240);
+          if (i === 3) ctx.fillText("這個夏天，我這樣笑了四次", 20, 950);
+        };
+        img.src = images[i];
+      }
+    }
+
+    function downloadImage() {
+      const link = document.createElement("a");
+      link.download = "fourcut_summer.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+  </script>
+</body>
+</html>
